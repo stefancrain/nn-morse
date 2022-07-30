@@ -1,27 +1,80 @@
 #!/usr/bin/env python3
 
-from scipy import signal
-import numpy as np
 import random
+
+import numpy as np
+from scipy import signal
 
 SAMPLE_FREQ = 2000  # 2 Khz
 
 MORSE_CODE_DICT = {
-    'A': '.-', 'B': '-...',
-    'C': '-.-.', 'D': '-..', 'E': '.',
-    'F': '..-.', 'G': '--.', 'H': '....',
-    'I': '..', 'J': '.---', 'K': '-.-',
-    'L': '.-..', 'M': '--', 'N': '-.',
-    'O': '---', 'P': '.--.', 'Q': '--.-',
-    'R': '.-.', 'S': '...', 'T': '-',
-    'U': '..-', 'V': '...-', 'W': '.--',
-    'X': '-..-', 'Y': '-.--', 'Z': '--..',
-    '1': '.----', '2': '..---', '3': '...--',
-    '4': '....-', '5': '.....', '6': '-....',
-    '7': '--...', '8': '---..', '9': '----.',
-    '0': '-----',
-    '.': '.-.-.-', ',': '--..--', '?': '..--..',
-    '=': '-...-', '+': '.-.-.',
+    "A": ".-",
+    "B": "-...",
+    "C": "-.-.",
+    "D": "-..",
+    "E": ".",
+    "F": "..-.",
+    "G": "--.",
+    "H": "....",
+    "I": "..",
+    "J": ".---",
+    "K": "-.-",
+    "L": ".-..",
+    "M": "--",
+    "N": "-.",
+    "O": "---",
+    "P": ".--.",
+    "Q": "--.-",
+    "R": ".-.",
+    "S": "...",
+    "T": "-",
+    "U": "..-",
+    "V": "...-",
+    "W": ".--",
+    "X": "-..-",
+    "Y": "-.--",
+    "Z": "--..",
+    "0": "-----",
+    "1": ".----",
+    "2": "..---",
+    "3": "...--",
+    "4": "....-",
+    "5": ".....",
+    "6": "-....",
+    "7": "--...",
+    "8": "---..",
+    "9": "----.",
+    "~": ".-.-",
+    "!": "-.-.--",
+    "@": ".--.-.",
+    "$": "...-..-",
+    "%": "----- -..-. -----",
+    "(": "-.--.",
+    ")": "-.--.-",
+    "-": "-....-",
+    "_": "..--.-",
+    "=": "-...-",
+    ":": "---...",
+    ";": "-.-.-.",
+    "'": ".----.",
+    ",": "--..--",
+    ".": ".-.-.-",
+    "/": "-..-.",
+    "?": "..--..",
+    "¶": ".-.-..",
+    "\\": ".-..-.",
+    "AR": ".-.-.",
+    "AS": ".-...",
+    "BT": "-...-",
+    "CT": "-.-.-",
+    "HH": "........",
+    "HM": "....--",
+    "INT": "..-.-",
+    "KN": "-.--.",
+    "NJ": "-..---",
+    "SK": "...-.-",
+    "SOS": "...---...",
+    "VE": "...-.",
 }
 ALPHABET = " " + "".join(MORSE_CODE_DICT.keys())
 
@@ -32,7 +85,9 @@ def get_spectrogram(samples):
     return s
 
 
-def generate_sample(text_len=10, pitch=500, wpm=20, noise_power=1, amplitude=100, s=None):
+def generate_sample(
+    text_len=10, pitch=500, wpm=20, noise_power=1, amplitude=100, s=None
+):
     assert pitch < SAMPLE_FREQ / 2  # Nyquist
 
     # Reference word is PARIS, 50 dots long
@@ -50,8 +105,8 @@ def generate_sample(text_len=10, pitch=500, wpm=20, noise_power=1, amplitude=100
 
     # Create random string that doesn't start or end with a space
     if s is None:
-        s1 = ''.join(random.choices(ALPHABET, k=text_len - 2))
-        s2 = ''.join(random.choices(ALPHABET[1:], k=2))
+        s1 = "".join(random.choices(ALPHABET, k=text_len - 2))
+        s2 = "".join(random.choices(ALPHABET[1:], k=2))
         s = s2[0] + s1 + s2[1]
 
     out = []
@@ -61,14 +116,14 @@ def generate_sample(text_len=10, pitch=500, wpm=20, noise_power=1, amplitude=100
     # The space between two characters of the same word is three times the length of a dot.
     # The space between two words is seven times the length of a dot (or more).
     for c in s:
-        if c == ' ':
+        if c == " ":
             out.append(np.zeros(7 * get_dot()))
         else:
             for m in MORSE_CODE_DICT[c]:
-                if m == '.':
+                if m == ".":
                     out.append(np.ones(get_dot()))
                     out.append(np.zeros(get_dot()))
-                elif m == '-':
+                elif m == "-":
                     out.append(np.ones(get_dash()))
                     out.append(np.zeros(get_dot()))
 
@@ -77,7 +132,7 @@ def generate_sample(text_len=10, pitch=500, wpm=20, noise_power=1, amplitude=100
     out.append(np.zeros(5 * get_dot()))
     out = np.hstack(out)
 
-    # Modulatation
+    # Modulation
     t = np.arange(len(out)) / SAMPLE_FREQ
     sine = np.sin(2 * np.pi * t * pitch)
     out = sine * out
@@ -98,8 +153,8 @@ def generate_sample(text_len=10, pitch=500, wpm=20, noise_power=1, amplitude=100
 
 
 if __name__ == "__main__":
-    from scipy.io.wavfile import write
     import matplotlib.pyplot as plt
+    from scipy.io.wavfile import write
 
     length = random.randrange(10, 20)
     pitch = random.randrange(100, 950)

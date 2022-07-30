@@ -2,3 +2,5 @@
 *.wav
 models/
 runs/
+.cache
+.ipynb_checkpoints

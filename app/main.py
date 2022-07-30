@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 import random
-from torch.utils.tensorboard import SummaryWriter
+from itertools import groupby
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils import data
-
-
 from morse import ALPHABET, generate_sample
-from itertools import groupby
+from torch.utils import data
+from torch.utils.tensorboard import SummaryWriter
 
 num_tags = len(ALPHABET)
 
@@ -18,6 +16,7 @@ num_tags = len(ALPHABET)
 tag_to_idx = {c: i + 1 for i, c in enumerate(ALPHABET)}
 idx_to_tag = {i + 1: c for i, c in enumerate(ALPHABET)}
 
+torch.backends.cudnn.benchmark = True
 
 def prediction_to_str(seq):
     if not isinstance(seq, list):
@@ -85,8 +84,8 @@ class Dataset(data.Dataset):
     def __getitem__(self, index):
         length = random.randrange(10, 20)
         pitch = random.randrange(100, 950)
-        wpm = random.randrange(10, 40)
-        noise_power = random.randrange(0, 200)
+        wpm = random.randrange(8, 55)
+        noise_power = random.randrange(0, 300)
         amplitude = random.randrange(10, 150)
         return get_training_sample(length, pitch, wpm, noise_power, amplitude)
 
@@ -104,24 +103,28 @@ def collate_fn_pad(batch):
 
 
 if __name__ == "__main__":
-    batch_size = 64
+    batch_size = 128
     spectrogram_size = generate_sample()[1].shape[0]
 
-    device = torch.device("cuda")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     writer = SummaryWriter()
 
     # Set up trainer & evaluator
     model = Net(num_tags, spectrogram_size).to(device)
     print("Number of params", model.count_parameters())
 
-    # Lower learning rate to 1e-4 after about 1500 epochs
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    if torch.cuda.device_count() > 1:
+      print("We have available ", torch.cuda.device_count(), "GPUs!")
+      model = nn.DataParallel(model, device_ids=[0,1])
+
+    optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     ctc_loss = nn.CTCLoss()
 
     train_loader = torch.utils.data.DataLoader(
         Dataset(),
         batch_size=batch_size,
-        num_workers=4,
+        pin_memory=True,
+        num_workers=16,
         collate_fn=collate_fn_pad,
     )
 
@@ -153,7 +156,9 @@ if __name__ == "__main__":
         writer.add_scalar("training/loss", loss.item(), epoch)
 
         if epoch % 10 == 0:
-            torch.save(model.state_dict(), f"models/{epoch:06}.pt")
+            print("-------------------------------------------------------")
+            print(f"- Epoch: {epoch}")
+            torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
 
         print(prediction_to_str(y[0]))
         print(prediction_to_str(m))

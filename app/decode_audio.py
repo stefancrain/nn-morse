@@ -6,10 +6,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io.wavfile
 import torch
-from scipy import signal
-
 from main import Net, num_tags, prediction_to_str
 from morse import ALPHABET, SAMPLE_FREQ, get_spectrogram
+from scipy import signal
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -18,6 +17,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     rate, data = scipy.io.wavfile.read(args.input)
+    print("Read")
 
     # Resample and rescale
     length = len(data) / rate
@@ -26,17 +26,20 @@ if __name__ == "__main__":
     data = signal.resample(data, new_length)
     data = data.astype(np.float32)
     data /= np.max(np.abs(data))
+    print("Resampled")
 
     # Create spectrogram
     spec = get_spectrogram(data)
     spec_orig = spec.copy()
     spectrogram_size = spec.shape[0]
+    print("Spectrogram")
 
     # Load model
     device = torch.device("cpu")
     model = Net(num_tags, spectrogram_size)
     model.load_state_dict(torch.load(args.model, map_location=device))
     model.eval()
+    print("Loaded")
 
     # Run model on audio
     spec = torch.from_numpy(spec)
@@ -44,6 +47,7 @@ if __name__ == "__main__":
     spec = spec.unsqueeze(0)
     y_pred = model(spec)
     y_pred_l = np.exp(y_pred[0].tolist())
+    print("Model Ran")
 
     # Convert prediction into string
     # TODO: proper beam search
@@ -53,7 +57,7 @@ if __name__ == "__main__":
     # Only show letters with > 5% prob somewhere in the sequence
     labels = np.asarray(["<blank>", "<space>"] + list(ALPHABET[1:]))
     sum_prob = np.max(y_pred_l, axis=0)
-    show_letters = sum_prob > .05
+    show_letters = sum_prob > 0.05
 
     plt.figure()
     plt.subplot(2, 1, 1)
@@ -61,5 +65,5 @@ if __name__ == "__main__":
     plt.subplot(2, 1, 2)
     plt.plot(y_pred_l[:, show_letters])
     plt.legend(labels[show_letters])
-    plt.autoscale(enable=True, axis='x', tight=True)
+    plt.autoscale(enable=True, axis="x", tight=True)
     plt.show()
