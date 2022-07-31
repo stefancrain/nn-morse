@@ -1,0 +1,44 @@
+---
+version: "3"
+tasks:
+  default:
+    cmds:
+      - task --list
+
+  lint:
+    desc: lint files
+    cmds:
+      - pylint --rcfile=.github/lint/.pylintrc app/*.py || true
+
+      # - pyflakes app/*.py || true
+      # # stop the build if there are Python syntax errors or undefined names
+      # - flake8 --config .github/lint/.flake8 app/*.py --count --select=E9,F63,F7,F82 --show-source --statistics || true
+      # # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+      # - flake8 --config .github/lint/.flake8 app/*.py --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics || true
+
+      # - mdl --config .github/lint/.mdlrc --style .github/lint/.mdl.rb . || true
+      # - yamllint -c .github/lint/.yamllint.yml . || true
+      # - pre-commit run --all-files
+
+  test:
+    desc: run tests
+    cmds:
+      - pytest
+      - nose2 -v --log-level=INFO --pretty-assert
+      - pytest --cov
+
+  upgrade:
+    desc: upgrade packages
+    cmds:
+      - pip-upgrade -p all --skip-package-installation app/requirements-dev.txt
+      - pip-upgrade -p all --skip-package-installation app/requirements.txt
+      - safety check -r app/requirements-dev.txt
+      - safety check -r app/requirements.txt
+
+  pretty:
+    desc: fix errors
+    cmds:
+      - prettier --parser=markdown --write '*.md' '**/*.md' || true
+      - prettier --parser=yaml --write '*.y*ml' '**/*.y*ml' || true
+      - isort app/*.py
+      - black --verbose app/*.py
