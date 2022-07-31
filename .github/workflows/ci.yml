@@ -27,7 +27,7 @@ jobs:
           github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           ec2-image-id: ami-024643308e9ca105c
           # cheap
-          ec2-instance-type: g4dn.metal
+          ec2-instance-type: g4dn.12xlarge
           # g4dn.12xlarge  4x 16GB T4 (CC 7.5)   - $3.91
           # g4dn.metal     8x 16GB T4 (CC 7.5)   - $7.82
           # p3.8xlarge     4x 16GB V100 (CC 7.0) - $12.24
