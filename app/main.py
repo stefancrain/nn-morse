@@ -180,8 +180,6 @@ if __name__ == "__main__":
             print(f"- Exiting")
             break
 
-        print(prediction_to_str(y[0]))
-        print(prediction_to_str(m))
-        print(loss.item())
-        print()
+        print(f"- {epoch}, {loss.item()}")
+        print(f" - {prediction_to_str(y[0])} / {prediction_to_str(m)}")
         epoch += 1
