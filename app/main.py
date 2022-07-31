@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import random
 from itertools import groupby
 
@@ -13,7 +14,9 @@ from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser(description="NN-Morse")
 parser.add_argument("-s", "--save", type=int, help="save every x epochs", default=10)
-parser.add_argument("-t", "--total", type=int, help="total number of epochs to run", default=100)
+parser.add_argument(
+    "-t", "--total", type=int, help="total number of epochs to run", default=100
+)
 args = parser.parse_args()
 
 
@@ -24,6 +27,10 @@ tag_to_idx = {c: i + 1 for i, c in enumerate(ALPHABET)}
 idx_to_tag = {i + 1: c for i, c in enumerate(ALPHABET)}
 
 torch.backends.cudnn.benchmark = True
+
+
+if not os.path.exists("models"):
+    os.makedirs("models")
 
 
 def prediction_to_str(seq):

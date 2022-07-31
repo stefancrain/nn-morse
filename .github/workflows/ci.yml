@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-      - 'releases/**'
+      - "releases/**"
 jobs:
   start-runner:
     name: Start self-hosted EC2 runner
@@ -73,8 +73,8 @@ jobs:
         with:
           name: models
           path: |
-           models/000100.pt
-           models/000500.pt
+            app/models/000100.pt
+            app/models/000500.pt
 
   stop-runner:
     name: Stop self-hosted EC2 runner
