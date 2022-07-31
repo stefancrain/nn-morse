@@ -1,5 +1,9 @@
 name: ec2-runner
-on: push
+on:
+  push:
+    branches:
+      - main
+      - 'releases/**'
 jobs:
   start-runner:
     name: Start self-hosted EC2 runner
@@ -38,9 +42,6 @@ jobs:
     needs: start-runner # required to start the main job when the runner is ready
     runs-on: ${{ needs.start-runner.outputs.label }} # run the job on the newly created runner
     steps:
-      - name: NVIDIA-SMI
-        run: nvidia-smi
-
       - name: Checkout
         uses: actions/checkout@v2
 
@@ -51,19 +52,20 @@ jobs:
           pip install -r requirements.txt
           pip install pytest-timeout
 
+      - name: NVIDIA-SMI
+        run: nvidia-smi
+
       - name: Versions
         working-directory: ./app
         run: |
-          python --version
+          python3.9 --version
           pip --version
-          /usr/bin/python3.9 --version
-          pip3 --version
           pip list
 
       - name: Generate Net
         working-directory: ./app
         run: |
-          /usr/bin/python3.9 main.py --save 10 --total 500
+          python3.9 main.py --save 10 --total 500
 
       - name: Archive Models
         uses: actions/upload-artifact@v3
