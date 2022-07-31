@@ -27,7 +27,7 @@ jobs:
           github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           ec2-image-id: ami-024643308e9ca105c
           # cheap
-          ec2-instance-type: g4dn.12xlarge
+          ec2-instance-type: g4dn.metal
           # g4dn.12xlarge  4x 16GB T4 (CC 7.5)   - $3.91
           # g4dn.metal     8x 16GB T4 (CC 7.5)   - $7.82
           # p3.8xlarge     4x 16GB V100 (CC 7.0) - $12.24
@@ -67,7 +67,7 @@ jobs:
       - name: Generate Net
         working-directory: ./app
         run: |
-          python3.9 main.py --save 10 --total 500
+          python3.9 main.py --save 100 --total 1000
 
       - name: Archive Models
         uses: actions/upload-artifact@v3
