@@ -21,7 +21,12 @@ jobs:
           mode: start
           github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
           ec2-image-id: ami-024643308e9ca105c
-          ec2-instance-type: g4dn.4xlarge
+          # cheap
+          ec2-instance-type: g4ad.xlarge
+          # 2x GPU
+          # ec2-instance-type: g4ad.8xlarge
+          # 4x GPU
+          # ec2-instance-type: g4ad.16xlarge
           subnet-id: subnet-0d00e9c357708b486 # public 1b
           security-group-id: sg-0cb78c31930887d16 # public 1b
           aws-resource-tags: >
@@ -47,10 +52,17 @@ jobs:
           pip install -r requirements.txt
           pip install pytest-timeout
 
+      - name: Versions
+        working-directory: ./app
+        run: |
+          python --version
+          python3 --version
+          pip list
+
       - name: Generate Net
         working-directory: ./app
-        run: | 
-          main.py --save 10 --total 500
+        run: |
+          python3 main.py --save 10 --total 500
 
       - name: Archive Models
         uses: actions/upload-artifact@v3
