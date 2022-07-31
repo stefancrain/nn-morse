@@ -12,8 +12,8 @@ from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser(description="NN-Morse")
-parser.add_argument("-s", "--save", help="save every x epochs", default=10)
-parser.add_argument("-t", "--total", help="total number of epochs to run", default=100)
+parser.add_argument("-s", "--save", type=int, help="save every x epochs", default=10)
+parser.add_argument("-t", "--total", type=int, help="total number of epochs to run", default=100)
 args = parser.parse_args()
 
 
