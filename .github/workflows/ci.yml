@@ -55,13 +55,15 @@ jobs:
         working-directory: ./app
         run: |
           python --version
-          python3 --version
+          pip --version
+          /usr/bin/python3.9 --version
+          pip3 --version
           pip list
 
       - name: Generate Net
         working-directory: ./app
         run: |
-          python3 main.py --save 10 --total 500
+          /usr/bin/python3.9 main.py --save 10 --total 500
 
       - name: Archive Models
         uses: actions/upload-artifact@v3
