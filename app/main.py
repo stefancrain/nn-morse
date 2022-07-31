@@ -139,7 +139,7 @@ if __name__ == "__main__":
         Dataset(),
         batch_size=batch_size,
         pin_memory=True,
-        num_workers=16,
+        num_workers=32,
         collate_fn=collate_fn_pad,
     )
 

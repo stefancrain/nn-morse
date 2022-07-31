@@ -67,15 +67,16 @@ jobs:
       - name: Generate Net
         working-directory: ./app
         run: |
-          python3.9 main.py --save 100 --total 1000
+          python3.9 main.py --save 250 --total 3000
 
       - name: Archive Models
         uses: actions/upload-artifact@v3
         with:
           name: models
+          if-no-files-found: error
+          retention-days: 7
           path: |
-            app/models/000100.pt
-            app/models/000500.pt
+            app/models/*
 
   stop-runner:
     name: Stop self-hosted EC2 runner
