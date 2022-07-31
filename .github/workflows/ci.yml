@@ -67,7 +67,7 @@ jobs:
       - name: Generate Net
         working-directory: ./app
         run: |
-          python3.9 main.py --save 250 --total 3000
+          python3.9 main.py --total 3000
 
       - name: Archive Models
         uses: actions/upload-artifact@v3
