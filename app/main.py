@@ -169,13 +169,12 @@ if __name__ == "__main__":
             optimizer.step()
 
         writer.add_scalar("training/loss", loss.item(), epoch)
-
-        if epoch % args.save == 0:
+        if (epoch % args.save == 0) and (epoch > 1):
             print("-------------------------------------------------------")
             print(f"- Epoch: {epoch}")
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
 
-        if epoch % args.total == 0:
+        if epoch == args.total:
             print("-------------------------------------------------------")
             print(f"- Final run of {epoch}")
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
