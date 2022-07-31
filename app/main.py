@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import argparse
 import random
 from itertools import groupby
 
@@ -10,6 +11,12 @@ from morse import ALPHABET, generate_sample
 from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
 
+parser = argparse.ArgumentParser(description="NN-Morse")
+parser.add_argument("-s", "--save", help="save every x epochs", default=10)
+parser.add_argument("-t", "--total", help="total number of epochs to run", default=100)
+args = parser.parse_args()
+
+
 num_tags = len(ALPHABET)
 
 # 0: blank label
@@ -17,6 +24,7 @@ tag_to_idx = {c: i + 1 for i, c in enumerate(ALPHABET)}
 idx_to_tag = {i + 1: c for i, c in enumerate(ALPHABET)}
 
 torch.backends.cudnn.benchmark = True
+
 
 def prediction_to_str(seq):
     if not isinstance(seq, list):
@@ -114,8 +122,8 @@ if __name__ == "__main__":
     print("Number of params", model.count_parameters())
 
     if torch.cuda.device_count() > 1:
-      print("We have available ", torch.cuda.device_count(), "GPUs!")
-      model = nn.DataParallel(model, device_ids=[0,1])
+        print("We have available ", torch.cuda.device_count(), "GPUs!")
+        model = nn.DataParallel(model, device_ids=[0, 1])
 
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     ctc_loss = nn.CTCLoss()
@@ -155,10 +163,17 @@ if __name__ == "__main__":
 
         writer.add_scalar("training/loss", loss.item(), epoch)
 
-        if epoch % 10 == 0:
+        if epoch % args.save == 0:
             print("-------------------------------------------------------")
             print(f"- Epoch: {epoch}")
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
+
+        if epoch % args.total == 0:
+            print("-------------------------------------------------------")
+            print(f"- Final run of {epoch}")
+            torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
+            print(f"- Exiting")
+            break
 
         print(prediction_to_str(y[0]))
         print(prediction_to_str(m))

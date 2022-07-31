@@ -1,0 +1,4 @@
+flake8==4.0.1
+autoflake==1.4
+pip-upgrader==1.4.15
+saftey==2.1.1

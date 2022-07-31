@@ -1,0 +1,21 @@
+FROM tensorflow/tensorflow:2.9.1-gpu-jupyter as build
+ENV HOME=/project
+WORKDIR /project
+COPY app/requirements.txt .
+RUN pip install \
+    --no-cache-dir \
+    -r requirements.txt
+COPY app/ .
+COPY entrypoint.sh .
+ENTRYPOINT [ "/project/entrypoint.sh" ]
+
+FROM tensorflow/tensorflow:2.9.1-gpu-jupyter as developer
+ENV HOME=/project
+WORKDIR /project
+COPY --from=build / / 
+COPY app/ .
+RUN pip install \
+    --no-cache-dir \
+    -r requirements-dev.txt
+COPY entrypoint.sh .
+ENTRYPOINT [ "/project/entrypoint.sh" ]
