@@ -23,10 +23,8 @@ parser.add_argument(
     "--log-level", default=os.environ.get("LOG_LEVEL"), help="log level"
 )
 args = parser.parse_args()
-
 fileConfig("logging.ini")
 logger = logging.getLogger()
-
 num_tags = len(ALPHABET)
 
 # 0: blank label
@@ -34,48 +32,37 @@ tag_to_idx = {c: i + 1 for i, c in enumerate(ALPHABET)}
 idx_to_tag = {i + 1: c for i, c in enumerate(ALPHABET)}
 
 torch.backends.cudnn.benchmark = True
-
 logging.info("Starting on NN-Morse Model Generation")
-
 os.makedirs("models", exist_ok=False)
 
 
 def prediction_to_str(seq):
     if not isinstance(seq, list):
         seq = seq.tolist()
-
     # remove duplicates
     seq = [i[0] for i in groupby(seq)]
-
     # remove blanks
     seq = [s for s in seq if s != 0]
-
     # convert to string
     seq = "".join(idx_to_tag[c] for c in seq)
-
     return seq
 
 
 def get_training_sample(*args, **kwargs):
     _, spec, y = generate_sample(*args, **kwargs)
-
     spec = torch.from_numpy(spec)
     spec = spec.permute(1, 0)
-
     y_tags = [tag_to_idx[c] for c in y]
     y_tags = torch.tensor(y_tags)
-
     return spec, y_tags
 
 
 class Net(nn.Module):
     def __init__(self, num_tags, spectrogram_size):
         super(Net, self).__init__()
-
         num_tags = num_tags + 1  # 0: blank
         hidden_dim = 256
         lstm_dim1 = 256
-
         self.dense1 = nn.Linear(spectrogram_size, hidden_dim)
         self.dense2 = nn.Linear(hidden_dim, hidden_dim)
         self.dense3 = nn.Linear(hidden_dim, hidden_dim)
@@ -88,9 +75,7 @@ class Net(nn.Module):
         x = F.relu(self.dense2(x))
         x = F.relu(self.dense3(x))
         x = F.relu(self.dense4(x))
-
         x, _ = self.lstm1(x)
-
         x = self.dense5(x)
         x = F.log_softmax(x, dim=2)
         return x
@@ -114,35 +99,27 @@ class Dataset(data.Dataset):
 
 def collate_fn_pad(batch):
     xs, ys = zip(*batch)
-
     input_lengths = torch.tensor([t.shape[0] for t in xs])
     output_lengths = torch.tensor([t.shape[0] for t in ys])
-
     seqs = nn.utils.rnn.pad_sequence(xs, batch_first=True)
     ys = nn.utils.rnn.pad_sequence(ys, batch_first=True)
-
     return input_lengths, output_lengths, seqs, ys
 
 
 if __name__ == "__main__":
     spectrogram_size = generate_sample()[1].shape[0]
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     writer = SummaryWriter()
-
     # Set up trainer & evaluator
     model = Net(num_tags, spectrogram_size).to(device)
-
     logging.info("Found %s Device" % device)
     logging.info("Number of params %s" % model.count_parameters())
-
     if torch.cuda.device_count() > 1:
         logging.info("We have available %s GPUs!" % torch.cuda.device_count())
-        model = nn.DataParallel(model, device_ids=[0])
+        model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
 
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     ctc_loss = nn.CTCLoss()
-
     train_loader = torch.utils.data.DataLoader(
         Dataset(),
         batch_size=args.batch,
@@ -150,34 +127,21 @@ if __name__ == "__main__":
         num_workers=args.threads,
         collate_fn=collate_fn_pad,
     )
-
     random.seed(0)
-
     epoch = 0
-
-    # Resume training
-    if epoch != 0:
-        model.load_state_dict(torch.load(f"models/{epoch:06}.pt", map_location=device))
-
     model.train()
     while True:
         loop_start = time.time()
         logging.debug("%s - Started" % (epoch))
         for (input_lengths, output_lengths, x, y) in train_loader:
             x, y = x.to(device), y.to(device)
-
             optimizer.zero_grad()
-
             y_pred = model(x)
-
             m = torch.argmax(y_pred[0], 1)
             y_pred = y_pred.permute(1, 0, 2)
-
             loss = ctc_loss(y_pred, y, input_lengths, output_lengths)
-
             loss.backward()
             optimizer.step()
-
         writer.add_scalar("training/loss", loss.item(), epoch)
         logging.info("%s - completed, Loss: %s," % (epoch, loss.item()))
         logging.debug("%s - Time: %s " % (epoch, {time.time() - loop_start}))
@@ -186,13 +150,11 @@ if __name__ == "__main__":
             % (epoch, {prediction_to_str(y[0])}, {prediction_to_str(m)})
         )
         # testing new epoch save settings
-        if (epoch % 10 == 0) and (loss.item() < 4.5):
+        if (epoch % 10 == 0) and (loss.item() < 5):
             logging.debug("%s - Saving Model" % epoch)
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
-
         if epoch == args.max:
             logging.info("Final run" % epoch)
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
             break
-
         epoch += 1
