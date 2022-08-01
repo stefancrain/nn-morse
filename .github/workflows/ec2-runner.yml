@@ -50,6 +50,13 @@ jobs:
       - name: NVIDIA-SMI
         run: nvidia-smi
 
+      - name: Install Dependencies
+        working-directory: ./app
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-timeout
+
       - name: Versions
         run: |
           python3.9 --version
