@@ -169,22 +169,26 @@ if __name__ == "__main__":
             optimizer.step()
 
         writer.add_scalar("training/loss", loss.item(), epoch)
-        print(f"- {epoch} - {loss.item()}")
-        print(f" - {prediction_to_str(y[0])} / {prediction_to_str(m)}")
+        print(f"# {epoch} - {loss.item()}")
+        print(f"  [{prediction_to_str(y[0])}] / [{prediction_to_str(m)}]")
 
-        if loss.item() < 1.15:
-            print(f" - Good Score! Saving to 'models/{epoch:06}.pt'")
-            torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
+        if loss.item() < 1.05 and loss.item() > 0.98:
+            print(f"   Good Score! Saving to 'models/good-{epoch:06}.pt'")
+            torch.save(model.module.state_dict(), f"models/good-{epoch:06}.pt")
+
+        if loss.item() <= 0.98:
+            print(f"   Great Score! Saving to 'models/great-{epoch:06}.pt'")
+            torch.save(model.module.state_dict(), f"models/great-{epoch:06}.pt")
 
         if epoch % 100 == 0:
-            print(f" - Saving to 'models/{epoch:06}.pt'")
+            print(f"   Saving to 'models/{epoch:06}.pt'")
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
 
         if epoch == args.total:
             print("-------------------------------------------------------")
-            print(f"- Final run of {epoch}")
+            print(f"   Final run of {epoch}")
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
-            print(f"- Exiting")
+            print(f"   Exiting")
             break
 
         epoch += 1
