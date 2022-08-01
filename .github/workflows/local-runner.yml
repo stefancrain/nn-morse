@@ -7,7 +7,6 @@ on:
 jobs:
   generate-net:
     name: Generate Morse Neural Net
-    needs: start-runner
     runs-on: self-hosted-free
     timeout-minutes: 1440 # 24hrs
     steps:
