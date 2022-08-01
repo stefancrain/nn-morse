@@ -138,7 +138,7 @@ if __name__ == "__main__":
         Dataset(),
         batch_size=batch_size,
         pin_memory=True,
-        num_workers=32,
+        num_workers=16,
         collate_fn=collate_fn_pad,
     )
 
@@ -151,6 +151,7 @@ if __name__ == "__main__":
         model.load_state_dict(torch.load(f"models/{epoch:06}.pt", map_location=device))
 
     model.train()
+    print("-------------------------------------------------------")
     while True:
         for (input_lengths, output_lengths, x, y) in train_loader:
             x, y = x.to(device), y.to(device)
@@ -172,7 +173,6 @@ if __name__ == "__main__":
         print(f" - {prediction_to_str(y[0])} / {prediction_to_str(m)}")
 
         if epoch % 100 == 0:
-            print("-------------------------------------------------------")
             print(f" - Saving to 'models/{epoch:06}.pt'")
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
 
