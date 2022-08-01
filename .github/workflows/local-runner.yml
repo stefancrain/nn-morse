@@ -1,4 +1,4 @@
-name: ec2-runner
+name: local-runner
 on:
   push:
     branches:
