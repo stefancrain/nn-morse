@@ -186,7 +186,7 @@ if __name__ == "__main__":
             % (epoch, {prediction_to_str(y[0])}, {prediction_to_str(m)})
         )
 
-        if epoch % 100 == 0:
+        if (epoch % 10 == 0) and (epoch > 10):
             logging.debug("%s - Saving Model" % epoch)
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
 
