@@ -35,7 +35,7 @@ idx_to_tag = {i + 1: c for i, c in enumerate(ALPHABET)}
 
 torch.backends.cudnn.benchmark = True
 logging.info("Starting on NN-Morse Model Generation")
-os.makedirs("models", exist_ok=False)
+os.makedirs("models", exist_ok=True)
 
 
 def prediction_to_str(seq):
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     logging.info("Number of params %s" % model.count_parameters())
     if torch.cuda.device_count() > 1:
         logging.info("We have available %s GPUs!" % torch.cuda.device_count())
-        model = nn.DataParallel(model, device_ids=[0, 1, 2, 3])
+        model = nn.DataParallel(model)
 
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     ctc_loss = nn.CTCLoss()
@@ -134,7 +134,6 @@ if __name__ == "__main__":
     model.train()
     while True:
         loop_start = time.time()
-        logging.debug("%s - Started" % (epoch))
         for (input_lengths, output_lengths, x, y) in train_loader:
             x, y = x.to(device), y.to(device)
             optimizer.zero_grad()
@@ -145,10 +144,10 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
         writer.add_scalar("training/loss", loss.item(), epoch)
-        logging.info("%s - completed, Loss: %s," % (epoch, loss.item()))
+        logging.info("%s - Completed, Loss: %s," % (epoch, loss.item()))
         logging.debug("%s - Time: %s " % (epoch, time.time() - loop_start))
         nonmatch = distance(prediction_to_str(y[0]), prediction_to_str(m))
-        logging.debug("%s - NonMatching chars: " % (epoch, nonmatch))
+        logging.debug("%s - NonMatching chars: %s" % (epoch, nonmatch))
 
         # testing new epoch save settings
         if (epoch % 100 == 0) and (loss.item() < 0.2):
