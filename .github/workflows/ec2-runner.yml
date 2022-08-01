@@ -58,7 +58,6 @@ jobs:
         run: nvidia-smi
 
       - name: Versions
-        working-directory: ./app
         run: |
           python3.9 --version
           pip --version

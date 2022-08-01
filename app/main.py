@@ -183,7 +183,7 @@ if __name__ == "__main__":
         logging.debug("%s - Time: %s " % (epoch, {time.time() - loop_start}))
         logging.debug(
             "%s - Matching: %s %s "
-            % ({prediction_to_str(y[0])}, {prediction_to_str(m)})
+            % (epoch, {prediction_to_str(y[0])}, {prediction_to_str(m)})
         )
 
         if epoch % 100 == 0:
