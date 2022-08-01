@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 import argparse
+import logging
 import os
 import random
+import time
 from itertools import groupby
+from logging.config import fileConfig
 
 import torch
 import torch.nn as nn
@@ -13,10 +16,16 @@ from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser(description="NN-Morse")
-parser.add_argument("--max", default=100, type=int, help="max epochs to run")
-parser.add_argument("--processes", default=1, type=int, help="processes")
+parser.add_argument("--batch", default=128, type=int, help="batch size")
+parser.add_argument("--max", default=1000, type=int, help="max epochs to run")
 parser.add_argument("--threads", default=os.cpu_count(), type=int, help="threads")
+parser.add_argument(
+    "--log-level", default=os.environ.get("LOG_LEVEL"), help="log level"
+)
 args = parser.parse_args()
+
+fileConfig("logging.ini")
+logger = logging.getLogger()
 
 num_tags = len(ALPHABET)
 
@@ -26,9 +35,9 @@ idx_to_tag = {i + 1: c for i, c in enumerate(ALPHABET)}
 
 torch.backends.cudnn.benchmark = True
 
+logging.info("Starting on NN-Morse Model Generation")
 
-if not os.path.exists("models"):
-    os.makedirs("models")
+os.makedirs("models", exist_ok=False)
 
 
 def prediction_to_str(seq):
@@ -116,7 +125,6 @@ def collate_fn_pad(batch):
 
 
 if __name__ == "__main__":
-    batch_size = 128
     spectrogram_size = generate_sample()[1].shape[0]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -124,20 +132,22 @@ if __name__ == "__main__":
 
     # Set up trainer & evaluator
     model = Net(num_tags, spectrogram_size).to(device)
-    print("Number of params", model.count_parameters())
+
+    logging.info("Found %s Device" % device)
+    logging.info("Number of params %s" % model.count_parameters())
 
     if torch.cuda.device_count() > 1:
-        print("We have available ", torch.cuda.device_count(), "GPUs!")
-        model = nn.DataParallel(model, device_ids=[0, 1, 2, 3, 4, 5, 6, 7])
+        logging.info("We have available %s GPUs!" % torch.cuda.device_count())
+        model = nn.DataParallel(model)
 
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     ctc_loss = nn.CTCLoss()
 
     train_loader = torch.utils.data.DataLoader(
         Dataset(),
-        batch_size=batch_size,
+        batch_size=args.batch,
         pin_memory=True,
-        num_workers=int(args.threads),
+        num_workers=args.threads,
         collate_fn=collate_fn_pad,
     )
 
@@ -150,8 +160,9 @@ if __name__ == "__main__":
         model.load_state_dict(torch.load(f"models/{epoch:06}.pt", map_location=device))
 
     model.train()
-    print("-------------------------------------------------------")
     while True:
+        loop_start = time.time()
+        logging.debug("%s - Started" % (epoch))
         for (input_lengths, output_lengths, x, y) in train_loader:
             x, y = x.to(device), y.to(device)
 
@@ -168,18 +179,20 @@ if __name__ == "__main__":
             optimizer.step()
 
         writer.add_scalar("training/loss", loss.item(), epoch)
-        print(f"# {epoch} - {loss.item()}")
-        print(f"  [{prediction_to_str(y[0])}] / [{prediction_to_str(m)}]")
+        logging.info("%s - completed, Loss: %s," % (epoch, loss.item()))
+        logging.debug("%s - Time: %s " % (epoch, {time.time() - loop_start}))
+        logging.debug(
+            "%s - Matching: %s %s "
+            % ({prediction_to_str(y[0])}, {prediction_to_str(m)})
+        )
 
         if epoch % 100 == 0:
-            print(f"   Saving to 'models/{epoch:06}.pt'")
+            logging.debug("%s - Saving Model" % epoch)
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
 
         if epoch == args.max:
-            print("-------------------------------------------------------")
-            print(f"   Final run of {epoch}")
+            logging.info("Final run" % epoch)
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
-            print(f"   Exiting")
             break
 
         epoch += 1

@@ -25,8 +25,9 @@ jobs:
         with:
           mode: start
           github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          ec2-image-id: ami-024643308e9ca105c
-          ec2-instance-type: g4dn.metal
+          ec2-image-id: ami-0b78ea9ed11a31e57
+          ec2-instance-type: g4dn.xlarge
+          # g4dn.xlarge    1x 16GB T4 (CC 7.5)   - $0.53
           # g4dn.12xlarge  4x 16GB T4 (CC 7.5)   - $3.91
           # g4dn.metal     8x 16GB T4 (CC 7.5)   - $7.82
           # p3.8xlarge     4x 16GB V100 (CC 7.0) - $12.24
@@ -69,6 +70,7 @@ jobs:
           python3.9 main.py --max 5000
         env:
           TF_ENABLE_ONEDNN_OPTS: 0
+          LOG_LEVEL: Debug
 
       - name: Archive Models
         uses: actions/upload-artifact@v3
