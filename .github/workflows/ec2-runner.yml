@@ -78,6 +78,8 @@ jobs:
           retention-days: 7
           path: |
             app/models/*
+            app/runs/*
+
 
   stop-runner:
     name: Stop self-hosted EC2 runner

@@ -144,17 +144,17 @@ if __name__ == "__main__":
             optimizer.step()
         writer.add_scalar("training/loss", loss.item(), epoch)
         logging.info("%s - completed, Loss: %s," % (epoch, loss.item()))
-        logging.debug("%s - Time: %s " % (epoch, {time.time() - loop_start}))
+        logging.debug("%s - Time: %s " % (epoch, time.time() - loop_start))
         logging.debug(
             "%s - Matching: %s %s "
-            % (epoch, {prediction_to_str(y[0])}, {prediction_to_str(m)})
+            % (epoch, prediction_to_str(y[0]), prediction_to_str(m))
         )
         # testing new epoch save settings
-        if (epoch % 10 == 0) and (loss.item() < 5):
+        if (epoch % 100 == 0) and (loss.item() < 0.2):
             logging.debug("%s - Saving Model" % epoch)
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
         if epoch == args.max:
-            logging.info("Final run" % epoch)
+            logging.info("%s - Saving Final Model" % epoch)
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
             break
         epoch += 1
