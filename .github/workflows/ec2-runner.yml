@@ -25,7 +25,7 @@ jobs:
         with:
           mode: start
           github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          ec2-image-id: ami-0b78ea9ed11a31e57
+          ec2-image-id: ami-0e5da150bd9f47dc5
           ec2-instance-type: g4dn.xlarge
           # g4dn.xlarge    1x 16GB T4 (CC 7.5)   - $0.53
           # g4dn.12xlarge  4x 16GB T4 (CC 7.5)   - $3.91
