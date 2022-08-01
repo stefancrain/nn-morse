@@ -27,4 +27,4 @@ jobs:
           tags: stefancrain/nn-morse:builder
       - name: Generate Net
         run: |
-          docker run --ipc=host --gpus=all --rm stefancrain/nn-morse:builder ./main.py --max 100
+          docker run --ipc=host --gpus=all -v "$PWD:/project" --rm stefancrain/nn-morse:builder ./main.py --max 5000
