@@ -175,7 +175,7 @@ if __name__ == "__main__":
             print(f"   Saving to 'models/{epoch:06}.pt'")
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
 
-        if epoch == args.total:
+        if epoch == args.max:
             print("-------------------------------------------------------")
             print(f"   Final run of {epoch}")
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
