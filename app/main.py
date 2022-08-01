@@ -172,6 +172,10 @@ if __name__ == "__main__":
         print(f"- {epoch} - {loss.item()}")
         print(f" - {prediction_to_str(y[0])} / {prediction_to_str(m)}")
 
+        if loss.item() < 1.15:
+            print(f" - Good Score! Saving to 'models/{epoch:06}.pt'")
+            torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
+
         if epoch % 100 == 0:
             print(f" - Saving to 'models/{epoch:06}.pt'")
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
