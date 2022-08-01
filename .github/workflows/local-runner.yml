@@ -1,0 +1,44 @@
+name: ec2-runner
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  generate-net:
+    name: Generate Morse Neural Net
+    needs: start-runner
+    runs-on: self-hosted-free
+    timeout-minutes: 1440 # 24hrs
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: NVIDIA-SMI
+        run: nvidia-smi
+      - name: Install Dependencies
+        working-directory: ./app
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-timeout
+      - name: Versions
+        run: |
+          python3.9 --version
+          pip --version
+          pip list
+      - name: Generate Net
+        working-directory: ./app
+        run: |
+          python3.9 main.py --max 100
+        env:
+          TF_ENABLE_ONEDNN_OPTS: 0
+          LOG_LEVEL: Debug
+      - name: Archive Models
+        uses: actions/upload-artifact@v3
+        with:
+          name: models
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            app/models/*
+            app/runs/*

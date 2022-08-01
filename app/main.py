@@ -4,6 +4,7 @@ import logging
 import os
 import random
 import time
+from difflib import SequenceMatcher
 from itertools import groupby
 from logging.config import fileConfig
 
@@ -11,6 +12,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from Levenshtein import distance
 from morse import ALPHABET, generate_sample
 from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
@@ -145,10 +147,9 @@ if __name__ == "__main__":
         writer.add_scalar("training/loss", loss.item(), epoch)
         logging.info("%s - completed, Loss: %s," % (epoch, loss.item()))
         logging.debug("%s - Time: %s " % (epoch, time.time() - loop_start))
-        logging.debug(
-            "%s - Matching: %s %s "
-            % (epoch, prediction_to_str(y[0]), prediction_to_str(m))
-        )
+        nonmatch = distance(prediction_to_str(y[0]), prediction_to_str(m))
+        logging.debug("%s - NonMatching chars: " % (epoch, nonmatch))
+
         # testing new epoch save settings
         if (epoch % 100 == 0) and (loss.item() < 0.2):
             logging.debug("%s - Saving Model" % epoch)
