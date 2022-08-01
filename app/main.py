@@ -13,11 +13,10 @@ from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser(description="NN-Morse")
-parser.add_argument(
-    "-t", "--total", type=int, help="total number of epochs to run", default=100
-)
+parser.add_argument("--max", default=100, type=int, help="max epochs to run")
+parser.add_argument("--processes", default=1, type=int, help="processes")
+parser.add_argument("--threads", default=os.cpu_count(), type=int, help="threads")
 args = parser.parse_args()
-
 
 num_tags = len(ALPHABET)
 
@@ -129,7 +128,7 @@ if __name__ == "__main__":
 
     if torch.cuda.device_count() > 1:
         print("We have available ", torch.cuda.device_count(), "GPUs!")
-        model = nn.DataParallel(model, device_ids=[0, 1])
+        model = nn.DataParallel(model)
 
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     ctc_loss = nn.CTCLoss()
@@ -138,7 +137,7 @@ if __name__ == "__main__":
         Dataset(),
         batch_size=batch_size,
         pin_memory=True,
-        num_workers=16,
+        num_workers=int(args.threads),
         collate_fn=collate_fn_pad,
     )
 
@@ -171,14 +170,6 @@ if __name__ == "__main__":
         writer.add_scalar("training/loss", loss.item(), epoch)
         print(f"# {epoch} - {loss.item()}")
         print(f"  [{prediction_to_str(y[0])}] / [{prediction_to_str(m)}]")
-
-        if loss.item() < 1.05 and loss.item() > 0.98:
-            print(f"   Good Score! Saving to 'models/good-{epoch:06}.pt'")
-            torch.save(model.module.state_dict(), f"models/good-{epoch:06}.pt")
-
-        if loss.item() <= 0.98:
-            print(f"   Great Score! Saving to 'models/great-{epoch:06}.pt'")
-            torch.save(model.module.state_dict(), f"models/great-{epoch:06}.pt")
 
         if epoch % 100 == 0:
             print(f"   Saving to 'models/{epoch:06}.pt'")
