@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
     if torch.cuda.device_count() > 1:
         logging.info("We have available %s GPUs!" % torch.cuda.device_count())
-        model = nn.DataParallel(model)
+        model = nn.DataParallel(model, device_ids=[0])
 
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     ctc_loss = nn.CTCLoss()
