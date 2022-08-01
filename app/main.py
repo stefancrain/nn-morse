@@ -185,8 +185,8 @@ if __name__ == "__main__":
             "%s - Matching: %s %s "
             % (epoch, {prediction_to_str(y[0])}, {prediction_to_str(m)})
         )
-
-        if (epoch % 10 == 0) and (epoch > 10):
+        # testing new epoch save settings
+        if (epoch % 10 == 0) and (loss.item() > 5):
             logging.debug("%s - Saving Model" % epoch)
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
 

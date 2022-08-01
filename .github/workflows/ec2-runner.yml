@@ -25,7 +25,8 @@ jobs:
         with:
           mode: start
           github-token: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
-          ec2-image-id: ami-0e5da150bd9f47dc5
+          # https://aws.amazon.com/machine-learning/amis/
+          ec2-image-id: ami-0b78ea9ed11a31e57
           ec2-instance-type: g4dn.xlarge
           # g4dn.xlarge    1x 16GB T4 (CC 7.5)   - $0.53
           # g4dn.12xlarge  4x 16GB T4 (CC 7.5)   - $3.91
@@ -58,7 +59,7 @@ jobs:
       - name: Generate Net
         working-directory: ./app
         run: |
-          python3.9 main.py --max 5000
+          python3.9 main.py --max 100
         env:
           TF_ENABLE_ONEDNN_OPTS: 0
           LOG_LEVEL: Debug
