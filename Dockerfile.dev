@@ -6,7 +6,6 @@ RUN pip install \
       --no-cache-dir \
       -r requirements.txt \
     && mkdir -p runs \
-    && mkdir -p models \
+    && mkdir -p models
 COPY app/ .
-
 ENTRYPOINT [ "python3" ]
