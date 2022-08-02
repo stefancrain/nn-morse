@@ -43,8 +43,8 @@ jobs:
         timeout-minutes: 5
         run: |
           docker pull ubuntu:22.04
-          docker run --rm -v nn-morse-${{ github.sha }}:/project ubuntu:22.04 tar -cO /project/models | gzip -c > models.tgz
-          docker run --rm -v nn-morse-${{ github.sha }}:/project ubuntu:22.04 tar -cO /project/runs | gzip -c > runs.tgz
+          docker run --rm -v nn-morse-${{ github.sha }}:/project ubuntu:22.04 tar -C /project/ -cO /project/models | gzip -c > models.tgz
+          docker run --rm -v nn-morse-${{ github.sha }}:/project ubuntu:22.04 tar -C /project/ -cO /project/runs | gzip -c > runs.tgz
       - name: Archive Models
         if: always()
         uses: actions/upload-artifact@v3
