@@ -65,7 +65,7 @@ jobs:
       - name: Generate Net
         working-directory: ./app
         run: |
-          python3.9 main.py --max 100
+          python3.9 main.py --max 5000
         env:
           TF_ENABLE_ONEDNN_OPTS: 0
           LOG_LEVEL: Debug
