@@ -35,7 +35,6 @@ idx_to_tag = {i + 1: c for i, c in enumerate(ALPHABET)}
 
 torch.backends.cudnn.benchmark = True
 logging.info("Starting on NN-Morse Model Generation")
-os.makedirs("models", exist_ok=True)
 
 
 def prediction_to_str(seq):
