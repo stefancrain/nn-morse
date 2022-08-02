@@ -14,22 +14,22 @@ jobs:
         uses: actions/checkout@v2
       - name: NVIDIA-SMI
         run: nvidia-smi
-      # - name: Cache Docker layers
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: /tmp/.buildx-cache
-      #     key: ${{ runner.os }}-buildx-${{ github.sha }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-buildx-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
-          # cache-from: type=local,src=/tmp/.buildx-cache
-          # cache-to: type=local,dest=/tmp/.buildx-cache
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
           push: false
           load: true
           file: Dockerfile.dev
@@ -37,6 +37,8 @@ jobs:
       - name: Generate Net
         run: |
           docker run \
+            -u 1000:1000 \
+            --name=nn-morse-${{ github.sha }}
             --ipc=host \
             --gpus=all \
             --volume "$PWD/models:/project/models" \
@@ -52,3 +54,7 @@ jobs:
           path: |
             app/models/*
             app/runs/*
+      - name: Remove container
+        if: always()
+        run: |
+          docker rm -f --name=nn-morse-${{ github.sha }}
