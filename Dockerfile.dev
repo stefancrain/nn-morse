@@ -1,11 +1,23 @@
 FROM tensorflow/tensorflow:2.9.1-gpu-jupyter
 ENV HOME=/project
 WORKDIR /project
+
+ENV USER=ml USER_ID=1000 USER_GID=1000
+RUN groupadd --gid "${USER_GID}" "${USER}" && \
+    useradd \
+    --uid ${USER_ID} \
+    --gid ${USER_GID} \
+    --no-create-home \
+    --shell /bin/bash \
+    ${USER}
 COPY app/requirements.txt .
 RUN pip install \
       --no-cache-dir \
       -r requirements.txt \
     && mkdir -p runs \
-    && mkdir -p models
+    && mkdir -p models \
+    && chown 1000:1000 runs \ 
+    && chown 1000:1000 models 
 COPY app/ .
+USER ml
 ENTRYPOINT [ "python3" ]

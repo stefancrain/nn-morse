@@ -36,7 +36,7 @@ jobs:
           tags: stefancrain/nn-morse:builder
       - name: Generate Net
         run: |
-          docker run --user 1000:1000 --name=nn-morse-${{ github.sha }} --ipc=host --gpus=all --volume "$PWD/models:/project/models" --volume "$PWD/runs:/project/runs" --rm stefancrain/nn-morse:builder main.py --max 500
+          docker run --user 1000:1000 --name=nn-morse-${{ github.sha }} --ipc=host --gpus=all --rm stefancrain/nn-morse:builder main.py --max 500
       - name: Archive Models
         uses: actions/upload-artifact@v3
         with:
