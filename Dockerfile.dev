@@ -13,11 +13,7 @@ RUN groupadd --gid "${USER_GID}" "${USER}" && \
 COPY app/requirements.txt .
 RUN pip install \
       --no-cache-dir \
-      -r requirements.txt \
-    && mkdir -p runs \
-    && mkdir -p models \
-    && chown 1000:1000 runs \ 
-    && chown 1000:1000 models 
+      -r requirements.txt
 COPY app/ .
 USER ml
 ENTRYPOINT [ "python3" ]

@@ -36,7 +36,13 @@ jobs:
           tags: stefancrain/nn-morse:builder
       - name: Generate Net
         run: |
-          docker run --user 1000:1000 --name=nn-morse-${{ github.sha }} --ipc=host --gpus=all --rm stefancrain/nn-morse:builder main.py --max 500
+          docker volume create nn-morse-${{ github.sha }}
+          docker run --name=nn-morse-${{ github.sha }} -v nn-morse-${{ github.sha }}:/project --ipc=host --gpus=all stefancrain/nn-morse:builder main.py --max 100
+      - name: Copy out file from volume
+        run: |
+          sudo cp /var/lib/docker/volumes/nn-morse-${{ github.sha }}/project/models/* app/
+          sudo cp /var/lib/docker/volumes/nn-morse-${{ github.sha }}/project/runs/* app/
+          # docker volume rm nn-morse-${{ github.sha }}
       - name: Archive Models
         uses: actions/upload-artifact@v3
         with:

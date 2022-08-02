@@ -149,7 +149,7 @@ if __name__ == "__main__":
         logging.debug("%s - NonMatching chars: %s" % (epoch, nonmatch))
 
         # testing new epoch save settings
-        if (epoch % 100 == 0) and (loss.item() < 0.2):
+        if (epoch % 100 == 0) and (loss.item() < 5.2):
             logging.debug("%s - Saving Model" % epoch)
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
         if epoch == args.max:
