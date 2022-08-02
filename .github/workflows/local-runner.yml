@@ -37,7 +37,7 @@ jobs:
       - name: Generate Net
         run: |
           docker volume create nn-morse-${{ github.sha }}
-          docker run --name=nn-morse-${{ github.sha }} -v nn-morse-${{ github.sha }}:/project --ipc=host --gpus=all stefancrain/nn-morse:builder main.py --max 20
+          docker run --name=nn-morse-${{ github.sha }} -v nn-morse-${{ github.sha }}:/project --ipc=host --gpus=all stefancrain/nn-morse:builder main.py --max 7000
       - name: Copy out file from Container
         if: always()
         timeout-minutes: 5
