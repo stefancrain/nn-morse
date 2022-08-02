@@ -37,13 +37,13 @@ jobs:
       - name: Generate Net
         run: |
           docker volume create nn-morse-${{ github.sha }}
-          docker run --name=nn-morse-${{ github.sha }} -v nn-morse-${{ github.sha }}:/project --ipc=host --gpus=all stefancrain/nn-morse:builder main.py --max 100
-      - name: Copy out file from volume
+          docker run --name=nn-morse-${{ github.sha }} -v nn-morse-${{ github.sha }}:/project --ipc=host --gpus=all stefancrain/nn-morse:builder main.py --max 20
+      - name: Copy out file from Container
         if: always()
+        timeout-minutes: 5
         run: |
-          sudo cp -R /var/lib/docker/volumes/nn-morse-${{ github.sha }}/_data/models app/models
-          sudo cp -R /var/lib/docker/volumes/nn-morse-${{ github.sha }}/_data/runs app/runs
-          docker volume rm nn-morse-${{ github.sha }}
+          docker run --volumes-from nn-morse-${{ github.sha }} ubuntu:lts tar -cO models | gzip -c > models.tgz
+          docker run --volumes-from nn-morse-${{ github.sha }} ubuntu:lts tar -cO runs | gzip -c > runs.tgz
       - name: Archive Models
         if: always()
         uses: actions/upload-artifact@v3
@@ -52,9 +52,10 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           path: |
-            app/models/*
-            app/runs/*
+            models.tgz
+            runs.tgz
       - name: Remove container
         if: always()
         run: |
           docker rm -f nn-morse-${{ github.sha }}
+          docker volume rm nn-morse-${{ github.sha }}
