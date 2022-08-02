@@ -49,4 +49,4 @@ jobs:
       - name: Remove container
         if: always()
         run: |
-          docker rm -f --name=nn-morse-${{ github.sha }}
+          docker rm -f nn-morse-${{ github.sha }}
