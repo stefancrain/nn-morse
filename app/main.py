@@ -93,8 +93,8 @@ class Dataset(data.Dataset):
     def __getitem__(self, index):
         length = random.randrange(10, 20)
         pitch = random.randrange(100, 950)
-        wpm = random.randrange(8, 55)
-        noise_power = random.randrange(0, 300)
+        wpm = random.randrange(8, 40)
+        noise_power = random.randrange(0, 200)
         amplitude = random.randrange(10, 150)
         return get_training_sample(length, pitch, wpm, noise_power, amplitude)
 
