@@ -18,7 +18,7 @@ from torch.utils import data
 from torch.utils.tensorboard import SummaryWriter
 
 parser = argparse.ArgumentParser(description="NN-Morse")
-parser.add_argument("--batch", default=128, type=int, help="batch size")
+parser.add_argument("--batch", default=64, type=int, help="batch size")
 parser.add_argument("--max", default=1000, type=int, help="max epochs to run")
 parser.add_argument("--threads", default=os.cpu_count(), type=int, help="threads")
 parser.add_argument(
@@ -112,14 +112,12 @@ if __name__ == "__main__":
     spectrogram_size = generate_sample()[1].shape[0]
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     writer = SummaryWriter()
-    # Set up trainer & evaluator
     model = Net(num_tags, spectrogram_size).to(device)
     logging.info("Found %s Device" % device)
     logging.info("Number of params %s" % model.count_parameters())
     if torch.cuda.device_count() > 1:
         logging.info("We have available %s GPUs!" % torch.cuda.device_count())
         model = nn.DataParallel(model)
-
     optimizer = optim.AdamW(model.parameters(), lr=1e-3)
     ctc_loss = nn.CTCLoss()
     train_loader = torch.utils.data.DataLoader(
@@ -144,14 +142,17 @@ if __name__ == "__main__":
             loss.backward()
             optimizer.step()
         writer.add_scalar("training/loss", loss.item(), epoch)
-        logging.info("%s completed in [%s]" % (epoch, "{:.4f}".format(time.time() - loop_start)))
+        logging.info(
+            "%s completed in [%s]" % (epoch, "{:.4f}".format(time.time() - loop_start))
+        )
         miss = distance(prediction_to_str(y[0]), prediction_to_str(m))
         logging.debug("%s - loss [%s]" % (epoch, "{:.6f}".format(loss.item())))
-        logging.debug("%s - missed : [%s] of [%s] signals" % (epoch, miss, len(prediction_to_str(y[0]))))
-
-        # testing new epoch save settings
+        logging.debug(
+            "%s - missed : [%s] of [%s] signals"
+            % (epoch, miss, len(prediction_to_str(y[0])))
+        )
         if (epoch % 100 == 0) and (loss.item() < 0.2):
-            logging.info("%s saving model" % epoch)
+            logging.info("%s - saving model" % epoch)
             torch.save(model.module.state_dict(), f"models/{epoch:06}.pt")
         if epoch == args.max:
             logging.info("%s - saving final model" % epoch)
