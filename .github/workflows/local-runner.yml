@@ -7,7 +7,7 @@ on:
 jobs:
   generate-net:
     name: Generate Morse Neural Net
-    runs-on: self-hosted-free
+    runs-on: [self-hosted, linux, gpu]
     timeout-minutes: 1440 # 24hrs
     steps:
       - name: Checkout
